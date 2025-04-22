@@ -2,44 +2,47 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Minh hoạ khoảng vay (tín chấp)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow">
-    <h2 class="text-2xl font-bold mb-4 text-center">Bảng minh hoạ số tiền trả hàng tháng</h2>
+<body class="bg-gray-100 p-4 sm:p-6">
+  <div class="max-w-6xl mx-auto bg-white p-4 sm:p-6 rounded-xl shadow">
+    <h2 class="text-2xl font-bold mb-4 text-center text-blue-800">💰 Bảng minh hoạ số tiền trả hàng tháng</h2>
 
-    <div class="grid grid-cols-2 gap-4 mb-6">
+    <!-- Form nhập liệu -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
       <div>
-        <label class="block font-medium mb-1">Lãi suất (%/năm):</label>
-        <input type="number" id="rate" value="12.5" step="0.01" class="w-full px-3 py-2 border rounded">
+        <label class="block font-medium mb-1 text-gray-700">Lãi suất (%/năm):</label>
+        <input type="number" id="rate" value="12.5" step="0.01" class="w-full px-3 py-2 border rounded shadow-sm">
       </div>
       <div>
-        <label class="block font-medium mb-1">Số tiền vay (các mức):</label>
-        <input type="text" id="amounts" value="100000000,150000000,200000000" class="w-full px-3 py-2 border rounded">
-        <p class="text-sm text-gray-500">Nhập cách nhau bằng dấu phẩy (,)</p>
+        <label class="block font-medium mb-1 text-gray-700">Số tiền vay (các mức, triệu đồng):</label>
+        <input type="text" id="amounts" value="100,150,200" class="w-full px-3 py-2 border rounded shadow-sm">
+        <p class="text-sm text-gray-500">Nhập số (triệu đồng) cách nhau bằng dấu phẩy (,). Ví dụ: 100 => 100 triệu</p>
       </div>
     </div>
 
-    <div class="flex gap-4 mb-4">
-      <button onclick="calculate()" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
-        Tính toán
+    <!-- Nút hành động -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+      <button onclick="calculate()" class="w-full sm:w-1/2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition font-semibold">
+        🧮 Tính toán
       </button>
-      <button onclick="downloadExcel()" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition">
-        Tải về Excel
+      <button onclick="downloadExcel()" class="w-full sm:w-1/2 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-semibold">
+        ⬇️ Tải về Excel
       </button>
     </div>
 
+    <!-- Kết quả -->
     <div id="resultBox" class="overflow-x-auto hidden">
-      <table id="resultTable" class="min-w-full table-auto border border-gray-300">
+      <table id="resultTable" class="min-w-full table-auto border border-gray-300 text-sm sm:text-base">
         <thead class="bg-blue-100 text-blue-900">
           <tr id="headerRow">
             <th class="text-left py-2 px-3 border">Số tiền vay</th>
-            <!-- Cột kỳ hạn sẽ được thêm ở đây -->
           </tr>
         </thead>
-        <tbody id="resultBody" class="text-sm">
+        <tbody id="resultBody">
           <!-- Dữ liệu sẽ được thêm ở đây -->
         </tbody>
       </table>
@@ -60,7 +63,10 @@
     function calculate() {
       const annualRate = parseFloat(document.getElementById("rate").value);
       const monthlyRate = annualRate / 100 / 12;
-      const amounts = document.getElementById("amounts").value.split(',').map(a => parseFloat(a.trim()));
+      // Nhập đơn vị triệu đồng, chuyển thành số tiền gốc
+      const amounts = document.getElementById("amounts").value
+        .split(',')
+        .map(a => parseFloat(a.trim()) * 1000000);
       const terms = [12, 24, 36, 48, 60];
 
       const headerRow = document.getElementById("headerRow");
@@ -71,12 +77,12 @@
 
       const resultBody = document.getElementById("resultBody");
       resultBody.innerHTML = "";
-
-      tableData = []; // reset dữ liệu bảng Excel
+      tableData = [];
       const header = ["Số tiền vay", ...terms.map(t => `${t} tháng`)];
       tableData.push(header);
 
       amounts.forEach(amount => {
+        // Hiển thị định dạng tiền gốc
         let rowHTML = `<tr><td class="border px-3 py-2 font-medium">${formatCurrency(amount)}</td>`;
         let excelRow = [amount];
 
@@ -99,11 +105,9 @@
         alert("Vui lòng tính toán trước khi tải file Excel.");
         return;
       }
-
       const ws = XLSX.utils.aoa_to_sheet(tableData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "TraGop");
-
       XLSX.writeFile(wb, "Bang_tra_gop.xlsx");
     }
   </script>
